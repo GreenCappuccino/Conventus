@@ -11,6 +11,19 @@ const originDB: Sequelize = new Sequelize('database', 'user', 'password', {
 	storage: path.join(__dirname, 'db', 'database.sqlite'),
 });
 
+// Authentication
+export const Passports = originDB.define('passports', {
+	userid: {
+		type: DataTypes.STRING,
+		unique: true,
+	},
+	avatar: DataTypes.STRING,
+	display: DataTypes.STRING,
+	username: DataTypes.STRING,
+	provider: DataTypes.STRING,
+});
+
+// Website Operations
 export const Users = originDB.define('users', {
 	userid: {
 		type: DataTypes.STRING,
@@ -23,34 +36,35 @@ export const Clubs = originDB.define('clubs', {
 	snowflake: {
 		type: DataTypes.STRING,
 		unique: true,
-	}
+	},
 });
 
 export const Streams = originDB.define('streams', {
 	snowflake: {
 		type: DataTypes.STRING,
 		unique: true,
-	}
+	},
 });
 
 export const Posts = originDB.define('posts', {
 	snowflake: {
 		type: DataTypes.STRING,
 		unique: true,
-	}
+	},
 });
 
 export const Widgets = originDB.define('widgets', {
 	snowflake: {
 		type: DataTypes.STRING,
 		unique: true,
-	}
+	},
 });
 
 export const syncModels = () => {
-	Users.sync()
-	Clubs.sync()
-	Streams.sync()
-	Posts.sync()
-	Widgets.sync()
+	Passports.sync();
+	Users.sync();
+	Clubs.sync();
+	Streams.sync();
+	Posts.sync();
+	Widgets.sync();
 };

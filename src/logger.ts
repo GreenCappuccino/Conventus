@@ -23,6 +23,7 @@ export const setupLogging = () => {
 		},
 		categories: {
 			default: {appenders: ['out', 'mainlog'], level: 'trace'},
+			website: {appenders: ['out', 'mainlog'], level: 'trace'},
 		},
 	});
 	const logger: Logger = log4js.getLogger();

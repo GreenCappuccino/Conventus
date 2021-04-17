@@ -7,8 +7,9 @@ import passport from 'passport';
 import cors from 'cors';
 import session from 'express-session';
 import {ensureLoggedIn} from 'connect-ensure-login';
-import {Model} from 'sequelize/types';
+import {Model, where} from 'sequelize/types';
 import {Strategy as GoogleStrategy} from 'passport-google-oauth2';
+import {Passports} from './models';
 
 
 interface User {
@@ -39,7 +40,7 @@ export class Webserver {
 			extended: true,
 		}));
 		this.web.use(session({
-			secret: process.env.VAXFINDER_SESSION_SECRET,
+			secret: process.env.CONVENTUS_SESSION_SECRET,
 			resave: false,
 			saveUninitialized: false,
 		}));
@@ -51,29 +52,73 @@ export class Webserver {
 		}));
 
 		passport.deserializeUser(((id: string, done) => {
-			done(null, this.users.get(id));
+			Passports.findOne({
+				where: {
+					userid: id,
+				},
+			}).then((userModel) => {
+				const user: User = {
+					user_id: userModel['userid'],
+					avatar: userModel['avatar'],
+					username: userModel['username'],
+					display: userModel['display'],
+					provider: userModel['provider'],
+				};
+				done(null, user);
+			}).catch((e) => {
+				done(e);
+			});
 		}));
 
 		passport.use(new GoogleStrategy({
-			clientID: process.env.VAXFINDER_GOOGLE_CLIENT_ID,
-			clientSecret: process.env.VAXFINDER_GOOGLE_CLIENT_SECRET,
-			callbackURL: `${process.env.VAXFINDER_HOST}/login/google/callback`,
+			clientID: process.env.CONVENTUS_GOOGLE_CLIENT_ID,
+			clientSecret: process.env.CONVENTUS_GOOGLE_CLIENT_SECRET,
+			callbackURL: `${process.env.CONVENTUS_HOST}/login/google/callback`,
 			passReqToCallback: false},
 		(accessToken, refreshToken, profile, cb) => {
 			this.logger.trace(profile);
-			this.users.set(profile.id, {
-				avatar: profile.photos.filter(photo => photo.type === 'default')[0]?.value,
-				display: profile.given_name,
+			const user: User = {
 				user_id: profile.id,
-				username: profile.id,
+				avatar: profile.photos.filter(photo => photo.type === 'default')[0]?.value,
+				username: profile.displayName,
+				display: profile.given_name,
 				provider: 'Google',
+			};
+			const model = {
+				userid: user.user_id,
+				avatar: user.avatar,
+				display: user.display,
+				username: user.username,
+				provider: user.provider,
+			};
+			Passports.upsert(model).then(() => {
+				cb(null, user);
+			}).catch((e) => {
+				this.logger.error(e);
+				cb(e);
 			});
-			return cb(null, this.users.get(profile.id));
 		},
 		));
 		this.web.engine('handlebars', exphbs());
 		this.web.set('views', path.join(__dirname, 'views'));
 		this.web.set('view engine', 'handlebars');
+
+		this.web.get('/', ((req, res) => {
+			res.render('home', {
+				data: Webserver.addUserData(req),
+			});
+		}));
+		this.web.get('/login/google/callback',
+			passport.authenticate('google', { failureRedirect: '/login' }),
+			function(req, res) {
+				res.redirect('/');
+			},
+		);
+		this.web.get('/logout', function (req, res) {
+			req.session.destroy(() => res.redirect('/'));
+		});
+
+		this.web.get('/login/google', passport.authenticate('google', { scope: ['profile'] }));
 
 		this.logger.info('Webserver loaded.');
 	}
@@ -86,6 +131,7 @@ export class Webserver {
 		return {
 			loggedIn: req.isAuthenticated(),
 			userDisplay: req.user?.display,
+			username: req.user?.username,
 			avatar: req.user?.avatar,
 			provider: req.user?.provider,
 		};
