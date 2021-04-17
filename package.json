@@ -19,11 +19,14 @@
   },
   "dependencies": {
     "@sapphire/snowflake": "^1.2.7",
+    "connect-ensure-login": "^0.1.1",
+    "cors": "^2.8.5",
     "express": "^4.17.1",
     "express-handlebars": "^5.3.0",
     "express-session": "^1.17.1",
     "log4js": "^6.3.0",
     "passport": "^0.4.1",
+    "passport-google-oauth2": "^0.2.0",
     "sequelize": "^6.6.2",
     "sqlite": "^4.0.21",
     "sqlite3": "^5.0.2"
