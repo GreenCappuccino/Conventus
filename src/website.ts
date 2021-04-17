@@ -38,11 +38,12 @@ export class Webserver {
 		this.web.use(express.urlencoded({
 			extended: true,
 		}));
+		/*
 		this.web.use(session({
 			secret: process.env.VAXFINDER_SESSION_SECRET,
 			resave: false,
 			saveUninitialized: false,
-		}));
+		}));*/
 		this.web.use(passport.initialize());
 		this.web.use(passport.session());
 
@@ -53,7 +54,7 @@ export class Webserver {
 		passport.deserializeUser(((id: string, done) => {
 			done(null, this.users.get(id));
 		}));
-
+		/*
 		passport.use(new GoogleStrategy({
 			clientID: process.env.VAXFINDER_GOOGLE_CLIENT_ID,
 			clientSecret: process.env.VAXFINDER_GOOGLE_CLIENT_SECRET,
@@ -70,10 +71,14 @@ export class Webserver {
 			});
 			return cb(null, this.users.get(profile.id));
 		},
-		));
+		));*/
 		this.web.engine('handlebars', exphbs());
 		this.web.set('views', path.join(__dirname, 'views'));
 		this.web.set('view engine', 'handlebars');
+
+		this.web.get('/', ((req, res) => {
+			res.send('READY');
+		}))
 
 		this.logger.info('Webserver loaded.');
 	}
