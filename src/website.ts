@@ -9,7 +9,8 @@ import session from 'express-session';
 import {ensureLoggedIn} from 'connect-ensure-login';
 import {Model, where} from 'sequelize/types';
 import {Strategy as GoogleStrategy} from 'passport-google-oauth2';
-import {Passports, Sessions} from './models';
+import {Passports, Posts, Sessions, Streams} from './models';
+import * as xss from 'xss';
 
 
 interface User {
@@ -18,6 +19,16 @@ interface User {
 	display: string,
 	avatar: string,
 	provider: string,
+}
+
+interface Post {
+	snowflake: string,
+	stream: string,
+	author: User,
+	timeISO: string,
+	timeString: string,
+	title: string,
+	content: string,
 }
 
 export class Webserver {
@@ -115,6 +126,70 @@ export class Webserver {
 			});
 		});
 
+		this.web.post('/addSelfPost', ensureLoggedIn('/login/google'), (req, res, next) => {
+			Posts.create({
+				snowflake: Date.now(),
+				stream: req['user'].user_id,
+				author: req['user'].user_id,
+				time: Date.now(),
+				title: xss.filterXSS(req.body.title),
+				content: xss.filterXSS(req.body.content),
+			}).then(() => {
+				res.redirect('/stream');
+			}).catch((e) => {
+				this.logger.error(e);
+				next(e);
+			});
+		});
+
+		this.web.get('/delSelfPost', ensureLoggedIn('/login/google'), (req, res, next) => {
+			Posts.destroy({
+				where: {
+					author: req['user'].user_id,
+					snowflake: req.query.snowflake,
+				},
+			}).then(() => {
+				res.redirect('/stream');
+			}).catch((e) => {
+				this.logger.error(e);
+				next(e);
+			});
+		});
+
+		this.web.get('/stream', ensureLoggedIn('/login/google'), (req, res, next) => {
+			Streams.upsert({
+				snowflake: req['user'].user_id,
+				type: 'user',
+				owner: req['user'].user_id,
+			}).then(model => {
+				return Posts.findAll({
+					where: {
+						stream: req['user'].user_id,
+					},
+				});
+			}).then((models) => {
+				const posts: Post[] = [];
+				for (let i = 0; i < models.length; i++) {
+					posts.unshift({ // unshift as posts appear from latest to oldest
+						author: req['user'],
+						title: models[i]['title'],
+						content: models[i]['content'],
+						snowflake: models[i]['snowflake'],
+						stream: models[i]['stream'],
+						timeISO: new Date(models[i]['time']).toISOString(),
+						timeString: new Date(models[i]['time']).toDateString(),
+					});
+				}
+				res.render('stream', {
+					data: { posts, ...Webserver.addUserData(req)},
+				});
+			}).catch((e) => {
+				this.logger.error(e);
+				next(e);
+			});
+		});
+
+		// Login Code
 		this.web.get('/login/google/callback',
 			passport.authenticate('google', { failureRedirect: '/login' }),
 			function(req, res) {
@@ -126,13 +201,14 @@ export class Webserver {
 		});
 
 		this.web.get('/login/google', passport.authenticate('google', { scope: ['profile'] }));
+
 		// Error handlers -- KEEP LAST!!!
 		this.web.use(((req, res, next) => {
 			res.status(404).render('404', {
 				data: Webserver.addUserData(req),
 			});
 		}));
-		this.web.use((req, res, next) => {
+		this.web.use((err, req, res, next) => {
 			this.logger.error(req);
 			res.status(500).render('500', {
 				data: Webserver.addUserData(req),

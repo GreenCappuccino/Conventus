@@ -32,14 +32,6 @@ export const Passports = originDB.define('passports', {
 });
 
 // Website Operations
-export const Users = originDB.define('users', {
-	userid: {
-		type: DataTypes.STRING,
-		unique: true,
-	},
-	username: DataTypes.STRING,
-});
-
 export const Clubs = originDB.define('clubs', {
 	snowflake: {
 		type: DataTypes.STRING,
@@ -52,36 +44,38 @@ export const Clubs = originDB.define('clubs', {
 export const Chatlog = originDB.define('chatlog', {
 	snowflake: {
 		type: DataTypes.STRING,
-		unique: true
+		unique: true,
 	},
 	userid: {
 		type: DataTypes.STRING,
 	},
 	textdata: {
-		type: DataTypes.TEXT
+		type: DataTypes.TEXT,
 	},
 	chatlogchat: {
-		type: DataTypes.STRING
-	}
+		type: DataTypes.STRING,
+	},
 
 });
 
 //chat
 export const Chat = originDB.define('chat', {
 	snowflake: {
-		type: DataTypes.STRING
+		type: DataTypes.STRING,
 	},
 	usersnowflake: {
-		type: DataTypes.STRING
+		type: DataTypes.STRING,
 	},
 
-})
+});
 
 export const Streams = originDB.define('streams', {
 	snowflake: {
 		type: DataTypes.STRING,
 		unique: true,
 	},
+	type: DataTypes.STRING, // 'user' or 'club'
+	owner: DataTypes.STRING, // either the user id or club snowflake
 });
 
 export const Posts = originDB.define('posts', {
@@ -89,6 +83,11 @@ export const Posts = originDB.define('posts', {
 		type: DataTypes.STRING,
 		unique: true,
 	},
+	stream: DataTypes.STRING, // the id of the stream the post of part of
+	author: DataTypes.STRING, // the id of the user (passport) who created the post
+	time: DataTypes.INTEGER,
+	title: DataTypes.STRING,
+	content: DataTypes.TEXT,
 });
 
 export const Widgets = originDB.define('widgets', {
@@ -101,7 +100,6 @@ export const Widgets = originDB.define('widgets', {
 export const syncModels = () => {
 	Sessions.sync();
 	Passports.sync();
-	Users.sync();
 	Chatlog.sync();
 	Chat.sync();
 	Clubs.sync();
