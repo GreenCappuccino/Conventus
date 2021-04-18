@@ -3,6 +3,7 @@
         <div class="row mb-2">
             <div class="col-sm-6">
                 <h1>Clubs</h1>
+                <h8><i>that you are a part of</i></h8>
             </div>
             <div class="col-sm-6">
                 <ol class="breadcrumb float-sm-right">
@@ -15,6 +16,28 @@
 
 <section class="content">
     <div class="container-fluid">
+        {{#if @adminUser}}
+            <div class="card card-danger">
+                <div class="card-header">
+                    <h6 class="m-0">Create Club</h6>
+                </div>
+                <form action="/addClub" method="post">
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label for="clubname">Club Name</label>
+                            <input name="clubname" type="text" class="form-control" id="clubname">
+                        </div>
+                        <div class="form-group">
+                            <label for="description">Description</label>
+                            <textarea name="description" class="form-control" rows="5" id="description"></textarea>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <button class="btn btn-danger" type="submit">Create</button>
+                    </div>
+                </form>
+            </div>
+        {{/if}}
         <div class="row">
             {{#each @clubs}}
                 <div class="col-sm-3">

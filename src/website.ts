@@ -174,7 +174,8 @@ export class Webserver {
 						}
 						res.render('home', {
 							data: {
-								users, posts, clubs,
+								users, clubs,
+								posts: posts.slice(0,12),
 								...Webserver.addUserData(req),
 							},
 						});
@@ -247,6 +248,80 @@ export class Webserver {
 			});
 		});
 
+		this.web.post('/modifyMembership', ensureLoggedIn('/login/google'), (req, res, next) => {
+			if (process.env.CONVENTUS_ADMIN_USER.toString().split(' ').indexOf(req['user'].user_id.toString()) >= 0) {
+				Memberships.update({
+					level: req.body.level,
+				}, {
+					where: {
+						userid: req.body.userid,
+						clubsnowflake: req.body.clubsnowflake,
+					},
+				}).then(() => {
+					res.redirect('/admin');
+				}).catch((e) => {
+					this.logger.error(e);
+					next(e);
+				});
+			} else {
+				next();
+			}
+		});
+
+		this.web.get('/admin', ensureLoggedIn('/login/google'), (req, res, next) => {
+			if (process.env.CONVENTUS_ADMIN_USER.toString().split(' ').indexOf(req['user'].user_id.toString()) >= 0) {
+				Memberships.findAll().then((membershipModel) => {
+					const queries = [];
+					const usernames = Array(membershipModel.length);
+					const clubnames = Array(membershipModel.length);
+					for (let i = 0; i < membershipModel.length; i++) {
+						queries.push(Passports.findOne({
+							where: {
+								userid: membershipModel[i]['userid'],
+							},
+						}).then((userModel) => {
+							usernames[i] = userModel['username'];
+						}));
+						queries.push(Clubs.findOne({
+							where: {
+								snowflake: membershipModel[i]['clubsnowflake'],
+							},
+						}).then((clubModel) => {
+							clubnames[i] = clubModel['name'];
+						}));
+					}
+					Promise.all(queries).then(() => {
+						const memmags = [];
+						for (let i = 0; i < membershipModel.length; i++) {
+							memmags.push({
+								index: i,
+								user_id: membershipModel[i]['userid'],
+								username: usernames[i],
+								clubsnowflake: membershipModel[i]['clubsnowflake'],
+								clubname: clubnames[i],
+								level: membershipModel[i]['level'],
+							});
+						}
+						res.render('admin', {
+							data: {
+								memmags,
+								...Webserver.addUserData(req),
+							},
+						});
+					}).catch((e) => {
+						this.logger.error(e);
+						next(e);
+					});
+				}).catch((e) => {
+					this.logger.error(e);
+					next(e);
+				});
+			} else {
+				next();
+			}
+		});
+
+
 		this.web.get('/joinClub', ensureLoggedIn('/login/google'), (req,res,next) => {
 			if (req.query.id)
 				Memberships.findOne({
@@ -292,6 +367,42 @@ export class Webserver {
 				});
 			else
 				res.redirect('/clubs');
+		});
+
+
+		this.web.post('/addClub', ensureLoggedIn('/login/google'), (req, res, next) => {
+			if (process.env.CONVENTUS_ADMIN_USER.toString().split(' ').indexOf(req['user'].user_id.toString()) >= 0) {
+				const sflake = Date.now();
+				Clubs.create({
+					snowflake: sflake,
+					name: req.body.clubname,
+					description: req.body.description,
+				}).then(() => {
+					res.redirect('/');
+				}).catch((e) => {
+					this.logger.error(e);
+					next(e);
+				});
+			} else {
+				next();
+			}
+		});
+
+		this.web.get('/delClub', ensureLoggedIn('/login/google'), (req, res, next) => {
+			if (process.env.CONVENTUS_ADMIN_USER.toString().split(' ').indexOf(req['user'].user_id.toString()) >= 0) {
+				Clubs.destroy({
+					where: {
+						snowflake: req.query?.id,
+					},
+				}).then(() => {
+					res.redirect('/');
+				}).catch((e) => {
+					this.logger.error(e);
+					next(e);
+				});
+			} else {
+				next();
+			}
 		});
 
 		this.web.get('/club', ensureLoggedIn('/login/google'), (req, res, next) => {
@@ -547,7 +658,7 @@ export class Webserver {
 	private static addUserData(req) {
 		return {
 			loggedIn: req.isAuthenticated(),
-			adminUser: req.user?.user_id === process.env.CONVENTUS_ADMIN_USER,
+			adminUser: process.env.CONVENTUS_ADMIN_USER.toString().split(' ').indexOf(req.user?.user_id.toString()) >= 0,
 			user_id: req.user?.user_id,
 			userDisplay: req.user?.display,
 			username: req.user?.username,

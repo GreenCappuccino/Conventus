@@ -1,0 +1,53 @@
+<section class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1>Admin Panel</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item active">Admin Panel</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</section>
+<section class="content">
+    <div class="container-fluid">
+        <h5>Memberships Manager</h5>
+        <table style="width: 100%">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>user id</th>
+                    <th>username</th>
+                    <th>club id</th>
+                    <th>clubname</th>
+                    <th>permlevel</th>
+                    <th>action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{#each @memmags}}
+                    <tr>
+                        <th scope="row">{{this.index}}</th>
+                        <td>{{this.user_id}}</td>
+                        <td>{{this.username}}</td>
+                        <td>{{this.clubsnowflake}}</td>
+                        <td>{{this.clubname}}</td>
+                        <form action="/modifyMembership" method="post">
+                            <input name="userid" type="hidden" value="{{this.user_id}}">
+                            <input name="clubsnowflake" type="hidden" value="{{this.clubsnowflake}}">
+                            <td>
+                                <input name="level" type="number" value="{{this.level}}">
+                            </td>
+                            <td>
+                                <button class="btn btn-danger" type="submit">Update</button>
+                            </td>
+                        </form>
+                    </tr>
+                {{/each}}
+            </tbody>
+        </table>
+    </div>
+</section>

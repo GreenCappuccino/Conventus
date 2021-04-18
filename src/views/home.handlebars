@@ -15,7 +15,7 @@
 <section class="content">
     <div class="container-fluid">
         <div class="row">
-            <div class="col">
+            <div class="col-3">
                 <div class="card card-info">
                     <div class="card-header">
                         <h3 class="card-title m-0">
@@ -50,7 +50,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col">
+            <div class="col-5">
                 <div class="card card-success">
                     <div class="card-header">
                         <h3 class="card-title m-0">
@@ -92,7 +92,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col">
+            <div class="col-2">
                 <div class="card card-warning">
                     <div class="card-header">
                         <h3 class="card-title m-0">
@@ -114,7 +114,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col">
+            <div class="col-2">
                 <div class="card card-danger">
                     <div class="card-header">
                         <h3 class="card-title m-0">
@@ -132,7 +132,12 @@
                                         <div class="text-right py-0 align-middle">
                                             <div class="btn-group btn-group-sm">
                                                 <a href="/club?id={{this.snowflake}}" class="btn btn-info"><i class="fas fa-info-circle"></i></a>
-                                                <a href="/joinClub?id={{this.snowflake}}" class="btn btn-success"><i class="fas fa-file-signature"></i></a>
+                                                {{#if @loggedIn}}
+                                                    <a href="/joinClub?id={{this.snowflake}}" class="btn btn-success"><i class="fas fa-file-signature"></i></a>
+                                                {{/if}}
+                                                {{#if @adminUser}}
+                                                    <a href="/delClub?id={{this.snowflake}}" class="btn btn-danger"><i class="fas fa-trash"></i></a>
+                                                {{/if}}
                                             </div>
                                         </div>
                                     </div>
