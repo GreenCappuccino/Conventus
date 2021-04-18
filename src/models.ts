@@ -39,6 +39,36 @@ export const Clubs = originDB.define('clubs', {
 	},
 });
 
+
+//Chatlog
+export const Chatlog = originDB.define('chatlog', {
+	snowflake: {
+		type: DataTypes.STRING,
+		unique: true,
+	},
+	userid: {
+		type: DataTypes.STRING,
+	},
+	textdata: {
+		type: DataTypes.TEXT,
+	},
+	chatlogchat: {
+		type: DataTypes.STRING,
+	},
+
+});
+
+//chat
+export const Chat = originDB.define('chat', {
+	snowflake: {
+		type: DataTypes.STRING,
+	},
+	usersnowflake: {
+		type: DataTypes.STRING,
+	},
+
+});
+
 export const Streams = originDB.define('streams', {
 	snowflake: {
 		type: DataTypes.STRING,
@@ -70,6 +100,8 @@ export const Widgets = originDB.define('widgets', {
 export const syncModels = () => {
 	Sessions.sync();
 	Passports.sync();
+	Chatlog.sync();
+	Chat.sync();
 	Clubs.sync();
 	Streams.sync();
 	Posts.sync();
