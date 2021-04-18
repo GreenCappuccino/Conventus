@@ -9,7 +9,7 @@ import session from 'express-session';
 import {ensureLoggedIn} from 'connect-ensure-login';
 import {Model, where} from 'sequelize/types';
 import {Strategy as GoogleStrategy} from 'passport-google-oauth2';
-import {Passports} from './models';
+import {Passports, Sessions} from './models';
 
 
 interface User {
@@ -41,6 +41,7 @@ export class Webserver {
 		}));
 		this.web.use(session({
 			secret: process.env.CONVENTUS_SESSION_SECRET,
+			store: Sessions,
 			resave: false,
 			saveUninitialized: false,
 		}));
@@ -97,8 +98,7 @@ export class Webserver {
 				this.logger.error(e);
 				cb(e);
 			});
-		},
-		));
+		}));
 		this.web.engine('handlebars', exphbs());
 		this.web.set('views', path.join(__dirname, 'views'));
 		this.web.set('view engine', 'handlebars');
@@ -119,7 +119,18 @@ export class Webserver {
 		});
 
 		this.web.get('/login/google', passport.authenticate('google', { scope: ['profile'] }));
-
+		// Error handlers -- KEEP LAST!!!
+		this.web.use(((req, res, next) => {
+			res.status(404).render('404', {
+				data: Webserver.addUserData(req),
+			});
+		}));
+		this.web.use((req, res, next) => {
+			this.logger.error(req);
+			res.status(500).render('500', {
+				data: Webserver.addUserData(req),
+			});
+		});
 		this.logger.info('Webserver loaded.');
 	}
 
