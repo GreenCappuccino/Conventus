@@ -39,19 +39,22 @@ export const Clubs = originDB.define('clubs', {
 	},
 	name: {
 		type: DataTypes.STRING,
-	}
-
+	},
+	description: {
+		type: DataTypes.STRING,
+	},
 });
 
 // Membership Table
 export const Memberships = originDB.define('membership',{
 	userid: {
-		type: DataTypes.STRING
+		type: DataTypes.STRING,
 	},
 	clubsnowflake: {
-		type: DataTypes.STRING
-	}
-})
+		type: DataTypes.STRING,
+	},
+	level: DataTypes.INTEGER, // Membership level... higher means more permissions
+});
 
 
 //Chatlog

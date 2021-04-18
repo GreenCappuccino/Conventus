@@ -23,7 +23,9 @@ interface User {
 }
 
 interface Club {
-	snowflake: string
+	snowflake: string,
+	clubname: string,
+	description: string,
 }
 
 interface Post {
@@ -127,6 +129,7 @@ export class Webserver {
 		this.web.get('/', ((req, res, next) => {
 			const users: User[] = [];
 			const posts: Post[] = [];
+			const clubs: Club[] = [];
 			const userMap: Map<string, User> = new Map<string, User>();
 			Passports.findAll().then(userModels => {
 				for (let i = 0; i < userModels.length; i++) {
@@ -151,11 +154,23 @@ export class Webserver {
 							timeString: new Date(postModels[i]['time']).toDateString(),
 						});
 					}
-					res.render('home', {
-						data: {
-							users, posts,
-							...Webserver.addUserData(req),
-						},
+					Clubs.findAll().then(clubModels => {
+						for (let i = 0; i < clubModels.length; i++) {
+							clubs.push({
+								snowflake: clubModels[i]['snowflake'],
+								clubname: clubModels[i]['name'],
+								description: clubModels[i]['description'],
+							});
+						}
+						res.render('home', {
+							data: {
+								users, posts, clubs,
+								...Webserver.addUserData(req),
+							},
+						});
+					}).catch(e => {
+						this.logger.error(e);
+						next(e);
 					});
 				}).catch(e => {
 					this.logger.error(e);
@@ -222,49 +237,84 @@ export class Webserver {
 			});
 		});
 
-		this.web.post('/addClub', ensureLoggedIn('/login/google'), (req, res, next) => {
-			const sflake = Date.now();
-			Memberships.create({
-				userid: req['user'].user_id,
-				clubsnowflake: sflake,
-			});
-			Clubs.create({
-				snowflake: sflake,
-				name: 'Club',
-			}).then(() => {
+		this.web.get('/joinClub', ensureLoggedIn('/login/google'), (req,res,next) => {
+			if (req.query.id)
+				Memberships.findOne({
+					where: {
+						userid: req['user'].user_id,
+						clubsnowflake: req.query.id,
+					},
+				}).then((model) => {
+					if (model === null) {
+						Memberships.upsert({
+							userid: req['user'].user_id,
+							clubsnowflake: req.query.id,
+							level: 1,
+						}).then(() => {
+							res.redirect('/clubs');
+						}).catch((e) => {
+							this.logger.error(e);
+							next(e);
+						});
+					} else {
+						res.redirect('/clubs');
+					}
+				}).catch((e) => {
+					this.logger.error(e);
+					next(e);
+				});
+			else
 				res.redirect('/clubs');
-			}).catch((e) => {
-				this.logger.error(e);
-				next(e);
-			});
 		});
 
+		this.web.get('/leaveClub', ensureLoggedIn('/login/google'), (req,res,next) => {
+			if (req.query.id)
+				Memberships.destroy({
+					where: {
+						userid: req['user'].user_id,
+						clubsnowflake: req.query.id,
+					},
+				}).then(() => {
+					res.redirect('/clubs');
+				}).catch((e) => {
+					this.logger.error(e);
+					next(e);
+				});
+			else
+				res.redirect('/clubs');
+		});
 
 		this.web.get('/clubs', ensureLoggedIn('/login/google'), (req, res, next) => {
 			Memberships.findAll({
 				where: {
 					userid: req['user'].user_id,
 				},
-			}).then((models) => {
+			}).then((membershipModels) => {
 				const clubs: Club[] = [];
-				for (let i = 0; i < models.length; i++) {
-					clubs.push({
-						snowflake: req[models[i]['snowflake']],
-					});
+				const clubQueries = [];
+				for (let i = 0; i < membershipModels.length; i++) {
+					clubQueries.push(Clubs.findOne({
+						where: {snowflake: membershipModels[i]['clubsnowflake']},
+					}).then((clubModel) => {
+						clubs.push({
+							snowflake: clubModel['snowflake'],
+							clubname: clubModel['name'],
+							description: clubModel['description'],
+						});
+					}));
 				}
-				res.render('clubs', {
-					data: { clubs, ...Webserver.addUserData(req)},
+				Promise.all(clubQueries).then(() => {
+					res.render('clubs', {
+						data: { clubs, ...Webserver.addUserData(req)},
+					});
+				}).catch((e) => {
+					this.logger.error(e);
+					next(e);
 				});
-
 			}).catch((e) => {
 				this.logger.error(e);
 				next(e);
 			});
-
-
-			/*			res.render('clubs', {
-				data: Webserver.addUserData(req),
-			});*/
 		});
 
 		this.web.post('/addSelfPost', ensureLoggedIn('/login/google'), (req, res, next) => {

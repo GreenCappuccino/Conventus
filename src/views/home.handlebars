@@ -39,6 +39,7 @@
                             {{/unless}}
                             <li class="nav-item">
                                 <div class="nav-link">
+                                    <img src="/svg/collab.svg" class="mb-3 mt-3" width="100%">
                                     <h4>Welcome to Conventus!</h4>
                                     <p>
                                         Conventus is your virtual campus! Meet people, join clubs, and chat!
@@ -118,11 +119,19 @@
                     </div>
                     <div class="card-body p-0">
                         <ul class="nav flex-column">
-                            <li class="nav-item">
-                                <p class="nav-link m-0">
-                                    Test
-                                </p>
-                            </li>
+                            {{#each @clubs}}
+                                <li class="nav-item">
+                                    <div class="nav-link m-0">
+                                        <p>{{this.clubname}}</p>
+                                        <p>{{this.description}}</p>
+                                        <div class="text-right py-0 align-middle">
+                                            <div class="btn-group btn-group-sm">
+                                                <a href="/joinClub?id={{this.snowflake}}" class="btn btn-info"><i class="fas fa-file-signature"></i></a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </li>
+                            {{/each}}
                         </ul>
                     </div>
                 </div>
