@@ -31,13 +31,24 @@ export const Passports = originDB.define('passports', {
 	provider: DataTypes.STRING,
 });
 
-// Website Operations
+// Clubs
 export const Clubs = originDB.define('clubs', {
 	snowflake: {
 		type: DataTypes.STRING,
 		unique: true,
 	},
+
 });
+
+// Membership Table
+export const Memberships = originDB.define('membership',{
+	userid: {
+		type: DataTypes.STRING
+	},
+	clubsnowflake: {
+		type: DataTypes.STRING
+	}
+})
 
 
 //Chatlog
@@ -101,6 +112,7 @@ export const syncModels = () => {
 	Sessions.sync();
 	Passports.sync();
 	Chatlog.sync();
+	Memberships.sync();
 	Chat.sync();
 	Clubs.sync();
 	Streams.sync();

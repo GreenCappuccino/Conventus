@@ -9,8 +9,9 @@ import session from 'express-session';
 import {ensureLoggedIn} from 'connect-ensure-login';
 import {Model, where} from 'sequelize/types';
 import {Strategy as GoogleStrategy} from 'passport-google-oauth2';
-import {Passports, Posts, Sessions, Streams} from './models';
+import {Clubs, Memberships, Passports, Posts, Sessions, Streams} from './models';
 import * as xss from 'xss';
+import { Snowflake } from '@sapphire/snowflake';
 
 
 interface User {
@@ -19,6 +20,10 @@ interface User {
 	display: string,
 	avatar: string,
 	provider: string,
+}
+
+interface Club {
+	snowflake: string
 }
 
 interface Post {
@@ -208,6 +213,34 @@ export class Webserver {
 					...Webserver.addUserData(req),
 				},
 			});
+		});
+
+		this.web.get('/clubs', ensureLoggedIn('/login/google'), (req, res, next) => {
+			Memberships.findAll({
+				where: {
+					userid: req['user'].user_id
+				}
+
+			}).then((models) => {
+				const clubs: Club[] = [];
+				for (let i = 0; i < models.length; i++) {
+					clubs.push({
+						snowflake: req[models[i]['snowflake']]
+					});
+				}
+				res.render('clubs', {
+					data: { clubs, ...Webserver.addUserData(req)},
+				});
+
+			}).catch((e) => {
+				this.logger.error(e);
+				next(e);
+			});
+
+
+			/*			res.render('clubs', {
+				data: Webserver.addUserData(req),
+			});*/
 		});
 
 		this.web.post('/addSelfPost', ensureLoggedIn('/login/google'), (req, res, next) => {
