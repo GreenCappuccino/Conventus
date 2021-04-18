@@ -37,6 +37,9 @@ export const Clubs = originDB.define('clubs', {
 		type: DataTypes.STRING,
 		unique: true,
 	},
+	name: {
+		type: DataTypes.STRING,
+	}
 
 });
 

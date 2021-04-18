@@ -180,12 +180,29 @@ export class Webserver {
 			});
 		});
 
+		this.web.post('/addClub', ensureLoggedIn('/login/google'), (req, res, next) => {
+			var sflake = Date.now()
+			Memberships.create({
+				userid: req['user'].user_id,
+				clubsnowflake: sflake
+			})
+			Clubs.create({
+				snowflake: sflake,
+				name: "Club"
+			}).then(() => {
+				res.redirect('/clubs');
+			}).catch((e) => {
+				this.logger.error(e);
+				next(e);
+			});
+		});
+
+
 		this.web.get('/clubs', ensureLoggedIn('/login/google'), (req, res, next) => {
 			Memberships.findAll({
 				where: {
 					userid: req['user'].user_id
 				}
-
 			}).then((models) => {
 				const clubs: Club[] = [];
 				for (let i = 0; i < models.length; i++) {
