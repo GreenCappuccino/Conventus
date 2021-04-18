@@ -86,12 +86,21 @@
                 {{/if}}
             </div>
 
-            {{#if @loggedIn}}
+
                 <!-- Sidebar Menu -->
-                <nav class="mt-2">
-                    <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu">
-                        <!-- Add icons to the links using the .nav-icon class
-                             with font-awesome or any other icon font library -->
+            <nav class="mt-2">
+                <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu">
+                    <!-- Add icons to the links using the .nav-icon class
+                         with font-awesome or any other icon font library -->
+                    <li class="nav-item">
+                        <a href="/" class="nav-link">
+                            <i class="nav-icon fas fa-landmark"></i>
+                            <p>
+                                Campus
+                            </p>
+                        </a>
+                    </li>
+                    {{#if @loggedIn}}
                         <li class="nav-item">
                             <a href="#" class="nav-link">
                                 <i class="nav-icon fas fa-tachometer-alt"></i>
@@ -124,11 +133,10 @@
                                 </p>
                             </a>
                         </li>
-                        
-                    </ul>
-                </nav>
-                <!-- /.sidebar-menu -->
-            {{/if}}
+                    {{/if}}
+                </ul>
+            </nav>
+            <!-- /.sidebar-menu -->
         </div>
         <!-- /.sidebar -->
     </aside>

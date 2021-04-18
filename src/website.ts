@@ -41,11 +41,9 @@ export class Webserver {
 	port: number;
 	logger: Logger;
 	web: Express;
-	users: Map<string, User>;
 
 	constructor(port: number) {
 		this.port = port;
-		this.users = new Map<string, User>();
 		this.logger = log4js.getLogger('website');
 		this.web = express();
 
@@ -119,9 +117,46 @@ export class Webserver {
 		this.web.set('views', path.join(__dirname, 'views'));
 		this.web.set('view engine', 'handlebars');
 
-		this.web.get('/', ((req, res) => {
-			res.render('home', {
-				data: Webserver.addUserData(req),
+		this.web.get('/', ((req, res, next) => {
+			const users: User[] = [];
+			const posts: Post[] = [];
+			const userMap: Map<string, User> = new Map<string, User>();
+			Passports.findAll().then(userModels => {
+				for (let i = 0; i < userModels.length; i++) {
+					users.push({
+						user_id: userModels[i]['userid'],
+						avatar: userModels[i]['avatar'],
+						display: userModels[i]['display'],
+						username: userModels[i]['username'],
+						provider: userModels[i]['provider'],
+					});
+					userMap.set(userModels[i]['userid'], users[i]);
+				}
+				Posts.findAll().then(postModels => {
+					for (let i = 0; i < postModels.length; i++) {
+						posts.unshift({ // unshift as posts appear from latest to oldest
+							author: userMap.get(postModels[i]['author']),
+							title: postModels[i]['title'],
+							content: postModels[i]['content'],
+							snowflake: postModels[i]['snowflake'],
+							stream: postModels[i]['stream'],
+							timeISO: new Date(postModels[i]['time']).toISOString(),
+							timeString: new Date(postModels[i]['time']).toDateString(),
+						});
+					}
+					res.render('home', {
+						data: {
+							users, posts,
+							...Webserver.addUserData(req),
+						},
+					});
+				}).catch(e => {
+					this.logger.error(e);
+					next(e);
+				});
+			}).catch(e => {
+				this.logger.error(e);
+				next(e);
 			});
 		}));
 
