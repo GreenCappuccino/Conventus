@@ -47,7 +47,7 @@
                             <time class="timeago" datetime="{{this.timeISO}}">{{this.timeString}}</time>
                         </span>
                         <!-- Header. Optional -->
-                        <h3 class="timeline-header"><a href="#">{{@username}}</a> created a post</h3>
+                        <h3 class="timeline-header"><a href="/user?id={{this.author.user_id}}">{{this.author.username}}</a> created a post</h3>
                         <!-- Body -->
                         <div class="timeline-body">
                             <h5>{{this.title}}</h5>
