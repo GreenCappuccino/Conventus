@@ -120,9 +120,58 @@ export class Webserver {
 			});
 		}));
 
+		this.web.get('/user',  (req, res, next) => {
+			const user = req.query.id ? req.query.id : req['user'].user_id;
+			Passports.findOne({where: {userid: user}}).then((userModel) => {
+				const posts: Post[] = [];
+				const user: User = {
+					user_id: userModel['userid'],
+					username: userModel['username'],
+					display: userModel['display'],
+					avatar: userModel['avatar'],
+					provider: userModel['provider'],
+				};
+				Promise.all([
+					Posts.findAll({
+						where: {author: userModel['userid']},
+					}).then((postModels) => {
+						for (let i = 0; i < postModels.length; i++) {
+							posts.unshift({ // unshift as posts appear from latest to oldest
+								author: user,
+								title: postModels[i]['title'],
+								content: postModels[i]['content'],
+								snowflake: postModels[i]['snowflake'],
+								stream: postModels[i]['stream'],
+								timeISO: new Date(postModels[i]['time']).toISOString(),
+								timeString: new Date(postModels[i]['time']).toDateString(),
+							});
+						}
+					}).catch((e) => {
+						this.logger.error(e);
+						next(e);
+					}),
+				]).then(() => {
+					res.render('user', {
+						data: {
+							user, posts,
+							...Webserver.addUserData(req),
+						},
+					});
+				}).catch((e) => {
+					this.logger.error(e);
+					next(e);
+				});
+			}).catch((e) => {
+				this.logger.error(e);
+				next(e);
+			});
+		});
+
 		this.web.get('/chats', ensureLoggedIn('/login/google'), (req, res) => {
 			res.render('chats', {
-				data: Webserver.addUserData(req),
+				data: {
+					...Webserver.addUserData(req),
+				},
 			});
 		});
 
@@ -224,6 +273,7 @@ export class Webserver {
 	private static addUserData(req) {
 		return {
 			loggedIn: req.isAuthenticated(),
+			user_id: req.user?.user_id,
 			userDisplay: req.user?.display,
 			username: req.user?.username,
 			avatar: req.user?.avatar,
