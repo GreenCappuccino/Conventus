@@ -1,6 +1,8 @@
 import {DataTypes, Sequelize} from 'sequelize';
 import path from 'path';
 import fs from 'fs';
+import connect_session_sequelize from 'connect-session-sequelize';
+import session from 'express-session';
 
 if (!fs.existsSync(path.join(__dirname, 'db'))) fs.mkdirSync(path.join(__dirname, 'db'));
 
@@ -12,6 +14,12 @@ const originDB: Sequelize = new Sequelize('database', 'user', 'password', {
 });
 
 // Authentication
+const SessionStore = connect_session_sequelize(session.Store);
+export const Sessions = new SessionStore({
+	db: originDB,
+	tableName: 'sessions',
+});
+
 export const Passports = originDB.define('passports', {
 	userid: {
 		type: DataTypes.STRING,
@@ -61,6 +69,7 @@ export const Widgets = originDB.define('widgets', {
 });
 
 export const syncModels = () => {
+	Sessions.sync();
 	Passports.sync();
 	Users.sync();
 	Clubs.sync();
