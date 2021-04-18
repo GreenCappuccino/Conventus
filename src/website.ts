@@ -108,6 +108,13 @@ export class Webserver {
 				data: Webserver.addUserData(req),
 			});
 		}));
+
+		this.web.get('/chats', ensureLoggedIn('/login/google'), (req, res) => {
+			res.render('chats', {
+				data: Webserver.addUserData(req),
+			});
+		});
+
 		this.web.get('/login/google/callback',
 			passport.authenticate('google', { failureRedirect: '/login' }),
 			function(req, res) {
