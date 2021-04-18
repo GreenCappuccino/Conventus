@@ -32,14 +32,6 @@ export const Passports = originDB.define('passports', {
 });
 
 // Website Operations
-export const Users = originDB.define('users', {
-	userid: {
-		type: DataTypes.STRING,
-		unique: true,
-	},
-	username: DataTypes.STRING,
-});
-
 export const Clubs = originDB.define('clubs', {
 	snowflake: {
 		type: DataTypes.STRING,
@@ -52,6 +44,8 @@ export const Streams = originDB.define('streams', {
 		type: DataTypes.STRING,
 		unique: true,
 	},
+	type: DataTypes.STRING, // 'user' or 'club'
+	owner: DataTypes.STRING, // either the user id or club snowflake
 });
 
 export const Posts = originDB.define('posts', {
@@ -59,6 +53,11 @@ export const Posts = originDB.define('posts', {
 		type: DataTypes.STRING,
 		unique: true,
 	},
+	stream: DataTypes.STRING, // the id of the stream the post of part of
+	author: DataTypes.STRING, // the id of the user (passport) who created the post
+	time: DataTypes.INTEGER,
+	title: DataTypes.STRING,
+	content: DataTypes.TEXT,
 });
 
 export const Widgets = originDB.define('widgets', {
@@ -71,7 +70,6 @@ export const Widgets = originDB.define('widgets', {
 export const syncModels = () => {
 	Sessions.sync();
 	Passports.sync();
-	Users.sync();
 	Clubs.sync();
 	Streams.sync();
 	Posts.sync();
