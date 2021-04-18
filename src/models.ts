@@ -46,7 +46,7 @@ export const Clubs = originDB.define('clubs', {
 });
 
 // Membership Table
-export const Memberships = originDB.define('membership',{
+export const Memberships = originDB.define('memberships',{
 	userid: {
 		type: DataTypes.STRING,
 	},

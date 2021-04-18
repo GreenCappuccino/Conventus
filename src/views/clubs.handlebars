@@ -26,9 +26,12 @@
                         <div class="card-body">
                             <h5>Description</h5>
                             {{this.description}}
+                            <br>
+                            <strong>Membership Level {{this.level}}</strong>
                         </div>
                         <!-- /.card-body -->
                         <div class="card-footer">
+                            <a class="btn btn-success" href="/club?id={{this.snowflake}}">Details</a>
                             <a class="btn btn-warning" href="/leaveClub?id={{this.snowflake}}">Leave Club</a>
                         </div>
                         <!-- /.card-footer -->

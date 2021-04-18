@@ -70,7 +70,12 @@
                                         <!-- Time -->
                                         <span class="time"><i class="fas fa-clock"></i><time class="timeago" datetime="{{this.timeISO}}">{{this.timeString}}</time></span>
                                         <!-- Header. Optional -->
-                                        <h3 class="timeline-header"><a href="/user?id={{this.author.user_id}}">{{this.author.username}}</a> created a post</h3>
+                                        {{#if this.author.club}}
+                                            <h3 class="timeline-header"><a href="/club?id={{this.author.user_id}}">{{this.author.username}}</a> created a post</h3>
+                                        {{else}}
+                                            <h3 class="timeline-header"><a href="/user?id={{this.author.user_id}}">{{this.author.username}}</a> created a post</h3>
+                                        {{/if}}
+
                                         <!-- Body -->
                                         <div class="timeline-body">
                                             <h5>{{this.title}}</h5>
@@ -126,7 +131,8 @@
                                         <p>{{this.description}}</p>
                                         <div class="text-right py-0 align-middle">
                                             <div class="btn-group btn-group-sm">
-                                                <a href="/joinClub?id={{this.snowflake}}" class="btn btn-info"><i class="fas fa-file-signature"></i></a>
+                                                <a href="/club?id={{this.snowflake}}" class="btn btn-info"><i class="fas fa-info-circle"></i></a>
+                                                <a href="/joinClub?id={{this.snowflake}}" class="btn btn-success"><i class="fas fa-file-signature"></i></a>
                                             </div>
                                         </div>
                                     </div>

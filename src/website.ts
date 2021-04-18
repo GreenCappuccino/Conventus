@@ -20,12 +20,14 @@ interface User {
 	display: string,
 	avatar: string,
 	provider: string,
+	club?: boolean,
 }
 
 interface Club {
 	snowflake: string,
 	clubname: string,
 	description: string,
+	level?: string,
 }
 
 interface Post {
@@ -142,24 +144,32 @@ export class Webserver {
 					});
 					userMap.set(userModels[i]['userid'], users[i]);
 				}
-				Posts.findAll().then(postModels => {
-					for (let i = 0; i < postModels.length; i++) {
-						posts.unshift({ // unshift as posts appear from latest to oldest
-							author: userMap.get(postModels[i]['author']),
-							title: postModels[i]['title'],
-							content: postModels[i]['content'],
-							snowflake: postModels[i]['snowflake'],
-							stream: postModels[i]['stream'],
-							timeISO: new Date(postModels[i]['time']).toISOString(),
-							timeString: new Date(postModels[i]['time']).toDateString(),
+				Clubs.findAll().then(clubModels => {
+					for (let i = 0; i < clubModels.length; i++) {
+						clubs.push({
+							snowflake: clubModels[i]['snowflake'],
+							clubname: clubModels[i]['name'],
+							description: clubModels[i]['description'],
+						});
+						userMap.set(clubModels[i]['snowflake'], {
+							user_id: clubModels[i]['snowflake'],
+							avatar: '',
+							display: clubModels[i]['name'],
+							username: clubModels[i]['name'],
+							provider: 'Conventus',
+							club: true,
 						});
 					}
-					Clubs.findAll().then(clubModels => {
-						for (let i = 0; i < clubModels.length; i++) {
-							clubs.push({
-								snowflake: clubModels[i]['snowflake'],
-								clubname: clubModels[i]['name'],
-								description: clubModels[i]['description'],
+					Posts.findAll().then(postModels => {
+						for (let i = 0; i < postModels.length; i++) {
+							posts.unshift({ // unshift as posts appear from latest to oldest
+								author: userMap.get(postModels[i]['author']),
+								title: postModels[i]['title'],
+								content: postModels[i]['content'],
+								snowflake: postModels[i]['snowflake'],
+								stream: postModels[i]['stream'],
+								timeISO: new Date(postModels[i]['time']).toISOString(),
+								timeString: new Date(postModels[i]['time']).toDateString(),
 							});
 						}
 						res.render('home', {
@@ -284,6 +294,127 @@ export class Webserver {
 				res.redirect('/clubs');
 		});
 
+		this.web.get('/club', ensureLoggedIn('/login/google'), (req, res, next) => {
+			if (req.query.id)
+				Clubs.findOne({
+					where: {snowflake: req.query.id},
+				}).then((clubModel) => {
+					const club: Club = {
+						snowflake: clubModel['snowflake'],
+						clubname: clubModel['name'],
+						description: clubModel['description'],
+					};
+					Memberships.findOne({
+						where: {
+							userid: req['user'].user_id,
+							clubsnowflake: clubModel['snowflake'],
+						},
+					}).then((membershipModel) => {
+						Posts.findAll({
+							where: {author: req.query.id},
+						}).then((postModels) => {
+							const posts: Post[] = [];
+							for (let i = 0; i < postModels.length; i++) {
+								posts.unshift({ // unshift as posts appear from latest to oldest
+									author: {
+										user_id: clubModel['snowflake'],
+										avatar: '',
+										display: clubModel['name'],
+										username: clubModel['name'],
+										club: true,
+										provider: 'Conventus',
+									},
+									title: postModels[i]['title'],
+									content: postModels[i]['content'],
+									snowflake: postModels[i]['snowflake'],
+									stream: postModels[i]['stream'],
+									timeISO: new Date(postModels[i]['time']).toISOString(),
+									timeString: new Date(postModels[i]['time']).toDateString(),
+								});
+							}
+							let postUI = false;
+							if (membershipModel)
+								postUI = membershipModel['level'] >= 5;
+							res.render('club', {
+								data: {
+									club, posts,
+									postUI,
+									...Webserver.addUserData(req),
+								},
+							});
+						}).catch((e) => {
+							this.logger.error(e);
+							next(e);
+						});
+					}).catch((e) => {
+						this.logger.error(e);
+						next(e);
+					});
+				}).catch((e) => {
+					this.logger.error(e);
+					next(e);
+				});
+			else
+				res.redirect('/');
+		});
+		this.web.get('/delClubPost', ensureLoggedIn('/login/google'), (req, res, next) => {
+			Memberships.findOne({
+				where: {
+					userid: req['user'].user_id,
+					clubsnowflake: req.query.id,
+				},
+			}).then((membershipModel) => {
+				let permission = false;
+				if (membershipModel)
+					permission = membershipModel['level'] >= 5;
+				if (permission)
+					Posts.destroy({
+						where: {
+							snowflake: req.query?.snowflake,
+						},
+					}).then(() => {
+						res.redirect(`/club?id=${req.query.id}`);
+					}).catch((e) => {
+						this.logger.error(e);
+						next(e);
+					});
+			}).catch((e) => {
+				this.logger.error(e);
+				next(e);
+			});
+		});
+
+
+		this.web.post('/addClubPost', ensureLoggedIn('/login/google'), (req, res, next) => {
+			Memberships.findOne({
+				where: {
+					userid: req['user'].user_id,
+					clubsnowflake: req.body.id,
+				},
+			}).then((membershipModel) => {
+				let permission = false;
+				if (membershipModel)
+					permission = membershipModel['level'] >= 5;
+				if (permission)
+					Posts.create({
+						snowflake: Date.now(),
+						stream: req.body.id,
+						author: req.body.id,
+						time: Date.now(),
+						title: xss.filterXSS(req.body.title),
+						content: xss.filterXSS(req.body.content),
+					}).then(() => {
+						res.redirect(`/club?id=${req.body.id}`);
+					}).catch((e) => {
+						this.logger.error(e);
+						next(e);
+					});
+			}).catch((e) => {
+				this.logger.error(e);
+				next(e);
+			});
+		});
+
 		this.web.get('/clubs', ensureLoggedIn('/login/google'), (req, res, next) => {
 			Memberships.findAll({
 				where: {
@@ -300,6 +431,7 @@ export class Webserver {
 							snowflake: clubModel['snowflake'],
 							clubname: clubModel['name'],
 							description: clubModel['description'],
+							level: membershipModels[i]['level'],
 						});
 					}));
 				}
@@ -415,6 +547,7 @@ export class Webserver {
 	private static addUserData(req) {
 		return {
 			loggedIn: req.isAuthenticated(),
+			adminUser: req.user?.user_id === process.env.CONVENTUS_ADMIN_USER,
 			user_id: req.user?.user_id,
 			userDisplay: req.user?.display,
 			username: req.user?.username,

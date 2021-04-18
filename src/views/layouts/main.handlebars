@@ -65,6 +65,18 @@
                         </div>
                     </div>
                     <nav>
+                        {{#if @adminUser}}
+                            <ul class="nav nav-pills nav-sidebar flex-column">
+                                <li class="nav-item">
+                                    <a style="color: red" class="nav-link">
+                                        <i class="nav-icon fa fa-key"></i>
+                                        <p>
+                                            Admin User
+                                        </p>
+                                    </a>
+                                </li>
+                            </ul>
+                        {{/if}}
                         <ul class="nav nav-pills nav-sidebar flex-column">
                             <li class="nav-item">
                                 <a href="/logout" class="nav-link">
@@ -128,14 +140,6 @@
                                 <i class="nav-icon fas fa-users"></i>
                                 <p>
                                     Clubs
-                                </p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="/chats" class="nav-link">
-                                <i class="nav-icon fas fa-comments"></i>
-                                <p>
-                                    Messages
                                 </p>
                             </a>
                         </li>
