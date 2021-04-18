@@ -23,12 +23,29 @@
                             Announcements
                         </h3>
                     </div>
-                    <div class="card-body p-0">
-                        <table class="table">
-                            <tbody>
-                            <tr><td>Test</td></tr>
-                            </tbody>
-                        </table>
+                    <div class="card-body">
+                        <ul class="nav flex-column">
+                            {{#unless @loggedIn}}
+                                <li class="nav-item">
+                                    <div class="nav-link">
+                                        <h4>Hey!</h4>
+                                        <p>
+                                            It looks like you aren't logged in to Conventus.
+                                            For the best experience, please log in.
+                                        </p>
+                                        <a class="btn btn-info" href="/login/google">Login</a>
+                                    </div>
+                                </li>
+                            {{/unless}}
+                            <li class="nav-item">
+                                <div class="nav-link">
+                                    <h4>Welcome to Conventus!</h4>
+                                    <p>
+                                        Conventus is your virtual campus! Meet people, join clubs, and chat!
+                                    </p>
+                                </div>
+                            </li>
+                        </ul>
                     </div>
                 </div>
             </div>
@@ -40,12 +57,32 @@
                             Activity
                         </h3>
                     </div>
-                    <div class="card-body p-0">
-                        <table class="table">
-                            <tbody>
-                            <tr><td>Test</td></tr>
-                            </tbody>
-                        </table>
+                    <div class="card-body">
+                        <!-- Main node for this component -->
+                        <div class="timeline">
+                            {{#each @posts}}
+                                <div>
+                                    <!-- Before each timeline item corresponds to one icon on the left scale -->
+                                    <i class="fas fa-stream bg-green"></i>
+                                    <!-- Timeline item -->
+                                    <div class="timeline-item">
+                                        <!-- Time -->
+                                        <span class="time"><i class="fas fa-clock"></i><time class="timeago" datetime="{{this.timeISO}}">{{this.timeString}}</time></span>
+                                        <!-- Header. Optional -->
+                                        <h3 class="timeline-header"><a href="/user?id={{this.author.user_id}}">{{this.author.username}}</a> created a post</h3>
+                                        <!-- Body -->
+                                        <div class="timeline-body">
+                                            <h5>{{this.title}}</h5>
+                                            {{this.content}}
+                                        </div>
+                                    </div>
+                                </div>
+                            {{/each}}
+                            <!-- The last icon means the story is complete -->
+                            <div>
+                                <i class="fas fa-clock bg-gray"></i>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -58,11 +95,16 @@
                         </h3>
                     </div>
                     <div class="card-body p-0">
-                        <table class="table">
-                            <tbody>
-                            <tr><td>Test</td></tr>
-                            </tbody>
-                        </table>
+                        <ul class="nav flex-column">
+                            {{#each @users}}
+                                <li class="nav-item">
+                                    <p class="nav-link m-0">
+                                        <img class="img-circle" src="{{this.avatar}}" width="64">
+                                        <a class="ml-4" href="/user?id={{this.user_id}}">{{this.username}}</a>
+                                    </p>
+                                </li>
+                            {{/each}}
+                        </ul>
                     </div>
                 </div>
             </div>
@@ -75,11 +117,13 @@
                         </h3>
                     </div>
                     <div class="card-body p-0">
-                        <table class="table">
-                            <tbody>
-                            <tr><td>Test</td></tr>
-                            </tbody>
-                        </table>
+                        <ul class="nav flex-column">
+                            <li class="nav-item">
+                                <p class="nav-link m-0">
+                                    Test
+                                </p>
+                            </li>
+                        </ul>
                     </div>
                 </div>
             </div>
