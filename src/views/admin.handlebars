@@ -14,40 +14,46 @@
 </section>
 <section class="content">
     <div class="container-fluid">
-        <h5>Memberships Manager</h5>
-        <table style="width: 100%">
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>user id</th>
-                    <th>username</th>
-                    <th>club id</th>
-                    <th>clubname</th>
-                    <th>permlevel</th>
-                    <th>action</th>
-                </tr>
-            </thead>
-            <tbody>
-                {{#each @memmags}}
+        <div class="card card-danger">
+            <div class="card-header">
+                <h3 class="card-title m-0">Memberships Manager</h3>
+            </div>
+            <div class="card-body">
+                <table style="width: 100%">
+                    <thead>
                     <tr>
-                        <th scope="row">{{this.index}}</th>
-                        <td>{{this.user_id}}</td>
-                        <td>{{this.username}}</td>
-                        <td>{{this.clubsnowflake}}</td>
-                        <td>{{this.clubname}}</td>
-                        <form action="/modifyMembership" method="post">
-                            <input name="userid" type="hidden" value="{{this.user_id}}">
-                            <input name="clubsnowflake" type="hidden" value="{{this.clubsnowflake}}">
-                            <td>
-                                <input name="level" type="number" value="{{this.level}}">
-                            </td>
-                            <td>
-                                <button class="btn btn-danger" type="submit">Update</button>
-                            </td>
-                        </form>
+                        <th>#</th>
+                        <th>user id</th>
+                        <th>username</th>
+                        <th>club id</th>
+                        <th>clubname</th>
+                        <th>permlevel</th>
+                        <th>action</th>
                     </tr>
-                {{/each}}
-            </tbody>
-        </table>
+                    </thead>
+                    <tbody>
+                    {{#each @memmags}}
+                        <tr>
+                            <th scope="row">{{this.index}}</th>
+                            <td>{{this.user_id}}</td>
+                            <td>{{this.username}}</td>
+                            <td>{{this.clubsnowflake}}</td>
+                            <td>{{this.clubname}}</td>
+                            <form action="/modifyMembership" method="post">
+                                <input name="userid" type="hidden" value="{{this.user_id}}">
+                                <input name="clubsnowflake" type="hidden" value="{{this.clubsnowflake}}">
+                                <td>
+                                    <input name="level" type="number" value="{{this.level}}">
+                                </td>
+                                <td>
+                                    <button class="btn btn-danger" type="submit">Update</button>
+                                </td>
+                            </form>
+                        </tr>
+                    {{/each}}
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 </section>

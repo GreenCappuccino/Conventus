@@ -1,0 +1,54 @@
+<section class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1>Timeline</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item active">Timeline</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</section>
+<section class="content">
+    <div class="container-fluid">
+        <div class="card-body">
+            <!-- Main node for this component -->
+            <div class="timeline">
+                {{#each @posts}}
+                    <div>
+                        <!-- Before each timeline item corresponds to one icon on the left scale -->
+                        <i class="fas fa-stream bg-green"></i>
+                        <!-- Timeline item -->
+                        <div class="timeline-item">
+                            <!-- Time -->
+                            <span class="time"><i class="fas fa-clock"></i><time class="timeago"
+                                                                                 datetime="{{this.timeISO}}">{{this.timeString}}</time></span>
+                            <!-- Header. Optional -->
+                            {{#if this.author.club}}
+                                <h3 class="timeline-header"><a href="/club?id={{this.author.user_id}}
+                                    ">{{this.author.username}}</a> created a post</h3>
+                            {{else}}
+                                <h3 class="timeline-header"><a href="/user?id={{this.author.user_id}}
+                                    ">{{this.author.username}}</a> created a post</h3>
+                            {{/if}}
+
+                            <!-- Body -->
+                            <div class="timeline-body">
+                                <h5>{{this.title}}</h5>
+                                {{this.content}}
+                            </div>
+                        </div>
+                    </div>
+                {{/each}}
+                <!-- The last icon means the story is complete -->
+                <div>
+                    <i class="fas fa-clock bg-gray"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+

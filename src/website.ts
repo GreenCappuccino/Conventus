@@ -193,6 +193,74 @@ export class Webserver {
 			});
 		}));
 
+		this.web.get('/timeline', ensureLoggedIn('/login/google'), (req, res, next) => {
+			const userMap: Map<string, User>  = new Map<string, User>();
+			const userSet: Set<string> = new Set<string>();
+			const posts: Post[] = [];
+			const clubs: Club[] = [];
+			Memberships.findAll({
+				where: {
+					userid: req['user'].user_id,
+				},
+			}).then((membershipModels) => {
+				const clubQueries = [];
+				for (let i = 0; i < membershipModels.length; i++) {
+					clubQueries.push(Clubs.findOne({
+						where: {
+							snowflake: membershipModels[i]['clubsnowflake'],
+						},
+					}).then((clubModel) => {
+						clubs.push({
+							snowflake: clubModel['snowflake'],
+							clubname: clubModel['name'],
+							description: clubModel['description'],
+						});
+						userSet.add(clubModel['snowflake']);
+						userMap.set(clubModel['snowflake'], {
+							user_id: clubModel['snowflake'],
+							avatar: '',
+							display: clubModel['name'],
+							username: clubModel['name'],
+							provider: 'Conventus',
+							club: true,
+						});
+					}));
+				}
+				return Promise.all(clubQueries).then(() => {
+					Posts.findAll().then((postModels) => {
+						for (let i = 0; i < postModels.length; i++) {
+							if (userSet.has(postModels[i]['author'])) {
+								posts.unshift({
+									author: userMap.get(postModels[i]['author']),
+									title: postModels[i]['title'],
+									content: postModels[i]['content'],
+									snowflake: postModels[i]['snowflake'],
+									stream: postModels[i]['stream'],
+									timeISO: new Date(postModels[i]['time']).toISOString(),
+									timeString: new Date(postModels[i]['time']).toDateString(),
+								});
+							}
+						}
+						res.render('timeline', {
+							data: {
+								posts: posts,
+								...Webserver.addUserData(req),
+							},
+						});
+					}).catch((e) => {
+						this.logger.error(e);
+						next(e);
+					});
+				}).catch((e) => {
+					this.logger.error(e);
+					next(e);
+				});
+			}).catch((e) => {
+				this.logger.error(e);
+				next(e);
+			});
+		});
+
 		this.web.get('/user',  (req, res, next) => {
 			const user = req.query.id ? req.query.id : req['user'].user_id;
 			Passports.findOne({where: {userid: user}}).then((userModel) => {
